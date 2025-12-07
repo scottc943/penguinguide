@@ -1,47 +1,28 @@
-# Maintainer: Your Name <you@example.com>
+# Maintainer: Scott Coffman <scott at allthingslinux dot org>
 
 pkgname=penguinguide-bin
 pkgver=0.1.0
 pkgrel=1
-pkgdesc="Friendly Linux helper that teaches commands while doing tasks"
+pkgdesc="Friendly Linux helper tool for new users"
 arch=('x86_64' 'aarch64')
 url="https://github.com/scottc943/penguinguide"
 license=('MIT')
 provides=('penguinguide')
 conflicts=('penguinguide')
 depends=('glibc')
-optdepends=(
-  'iproute2: additional routing and interface info output'
-  'curl: improved public IP detection and extended speed tests'
-  'networkmanager: nicer wifi output through nmcli'
-  'wireless_tools: fallback wifi data using iwconfig'
-)
-makedepends=('tar')
 
-source_x86_64=("${url}/releases/download/v${pkgver}/penguinguide_${pkgver}_linux_amd64.tar.gz")
-source_aarch64=("${url}/releases/download/v${pkgver}/penguinguide_${pkgver}_linux_arm64.tar.gz")
+_arch=
+case "$CARCH" in
+  x86_64) _arch=amd64 ;;
+  aarch64) _arch=arm64 ;;
+  *) _arch="$CARCH" ;;
+esac
 
-sha256sums_x86_64=('SKIP')
-sha256sums_aarch64=('SKIP')
+source=("https://github.com/scottc943/penguinguide/releases/download/v${pkgver}/penguinguide_${pkgver}_linux_${_arch}.tar.gz")
+sha256sums=('SKIP')
 
 package() {
-  cd "${srcdir}"
-
-  if [[ "$CARCH" == "x86_64" ]]; then
-    tar xf "penguinguide_${pkgver}_linux_amd64.tar.gz"
-  else
-    tar xf "penguinguide_${pkgver}_linux_arm64.tar.gz"
-  fi
-
-  # Install main binary
-  install -Dm755 "penguinguide" "${pkgdir}/usr/bin/penguinguide"
-
-  # Install man page if present
-  if [[ -f "man/penguinguide.1" ]]; then
-    install -Dm644 "man/penguinguide.1" "${pkgdir}/usr/share/man/man1/penguinguide.1"
-  fi
-
-  install -Dm644 "LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+    install -Dm755 "penguinguide" "$pkgdir/usr/bin/penguinguide"
+    install -Dm644 "LICENSE" "$pkgdir/usr/share/licenses/${pkgname}/LICENSE"
+    install -Dm644 "man/penguinguide.1" "$pkgdir/usr/share/man/man1/penguinguide.1"
 }
-
-
