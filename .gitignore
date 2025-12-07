@@ -7,15 +7,15 @@ penguinguide
 *.so
 *.dylib
 
-# Go build cache
+# Local build dirs
 /build/
 /bin/
 /out/
 
-# Module cache (optional if vendor not used)
+# Go modules
 vendor/
 
-# Temporary files and test runs
+# Test binaries and scratch files
 *.test
 *.tmp
 
@@ -24,32 +24,38 @@ vendor/
 # =====================
 dist/
 
-# Packages generated during builds
+# Release packages produced locally
 *.rpm
 *.deb
 *.tar.gz
 
-# Checksums
+# Checksums from releases
 checksums_*.txt
 
 # =====================
 # Man pages
 # =====================
-# If you WANT to commit generated man pages, REMOVE this
+# If you only generate man pages during release and do not want them in git
 man/
 
+# If you decide to track raw man sources instead, remove the line above
+# and use something like this instead
+# man/*.gz
+
 # =====================
-# Editor and local files
+# Scripts
+# =====================
+# Keep scripts tracked, only ignore any local junk if you add it later
+# scripts/*.log
+
+# =====================
+# Editor and OS files
 # =====================
 .idea/
 .vscode/
 *.swp
 *.swo
-
-# macOS metadata
 .DS_Store
-
-# Windows metadata
 Thumbs.db
 
 # =====================
