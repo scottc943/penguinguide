@@ -1,0 +1,70 @@
+project_name: penguinguide
+version: 2
+
+builds:
+  - id: penguinguide
+    main: ./main.go
+    binary: penguinguide
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - '-s -w -X main.version={{ .Version }} -X main.commit={{ .Commit }} -X main.date={{ .Date }}'
+
+archives:
+  - id: penguinguide-archive
+    builds:
+      - penguinguide
+    format: tar.gz
+    name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+    files:
+      - LICENSE
+      - README.md
+      - man/**
+
+checksum:
+  name_template: 'checksums_{{ .ProjectName }}_{{ .Version }}.txt'
+
+nfpms:
+  - id: penguinguide-packages
+    package_name: penguinguide
+    builds:
+      - penguinguide
+    formats:
+      - deb
+      - rpm
+    maintainer: 'Scott Coffman <scott@allthingslinux.org>'
+    description: 'Helpful Linux guide and diagnostics tool for new users'
+    license: MIT
+    bindir: /usr/bin
+    contents:
+      - src: 'man/penguinguide.1'
+        dst: '/usr/share/man/man1/penguinguide.1'
+    scripts:
+      postinstall: 'packaging/postinstall.sh'
+
+aurs:
+  - name: penguinguide-bin
+    ids:
+      - penguinguide
+    homepage: 'https://github.com/scottc943/penguinguide'
+    description: 'Helpful Linux guide and diagnostics tool for new users'
+    maintainers:
+      - 'Scott Coffman <scott@allthingslinux.org>'
+    license: MIT
+    git_url: 'ssh://aur@aur.archlinux.org/penguinguide-bin.git'
+    provides:
+      - penguinguide
+    conflicts:
+      - penguinguide
+    skip_upload: '{{ or .IsSnapshot (ne .Env.PUBLISH_AUR "true") }}'
+    commit_msg_template: 'Update to {{ .Tag }}'
+
+
+changelog:
+  use: github
+
