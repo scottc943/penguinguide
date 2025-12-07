@@ -1,14 +1,58 @@
-*.tar
-*.tar.*
-*.jar
+# =====================
+# Go build artifacts
+# =====================
+penguinguide
 *.exe
-*.msi
-*.deb
-*.zip
-*.tgz
-*.log
-*.log.*
-*.sig
+*.dll
+*.so
+*.dylib
 
-pkg/
-src/
+# Go build cache
+/build/
+/bin/
+/out/
+
+# Module cache (optional if vendor not used)
+vendor/
+
+# Temporary files and test runs
+*.test
+*.tmp
+
+# =====================
+# GoReleaser output
+# =====================
+dist/
+
+# Packages generated during builds
+*.rpm
+*.deb
+*.tar.gz
+
+# Checksums
+checksums_*.txt
+
+# =====================
+# Man pages
+# =====================
+# If you WANT to commit generated man pages, REMOVE this
+man/
+
+# =====================
+# Editor and local files
+# =====================
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# macOS metadata
+.DS_Store
+
+# Windows metadata
+Thumbs.db
+
+# =====================
+# Logs
+# =====================
+*.log
