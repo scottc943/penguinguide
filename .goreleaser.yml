@@ -51,6 +51,8 @@ nfpms:
 
 aurs:
   - name: penguinguide-bin
+    ids:
+      - penguinguide-archive
     homepage: "https://github.com/scottc943/penguinguide"
     description: "Helpful Linux guide and diagnostics tool for new users"
     maintainers:
@@ -65,7 +67,7 @@ aurs:
       - penguinguide
     conflicts:
       - penguinguide
-    skip_upload: '{{ or .IsSnapshot (ne .Env.PUBLISH_AUR "true") }}'
+    disable: '{{ ne .Env.PUBLISH_AUR "true" }}'
     commit_msg_template: "Update to {{ .Tag }}"
 
 changelog:
