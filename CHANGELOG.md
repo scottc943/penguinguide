@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/scottc943/penguinguide/compare/v0.1.3...v0.1.4) (2026-07-22)
+
+
+### Bug Fixes
+
+* fixing AUR deployment by removing b64 encoding ([a1b8a2f](https://github.com/scottc943/penguinguide/commit/a1b8a2f8056a995cd6d57dbeb8f63f8fea5fc284))
+
 ## [0.1.3](https://github.com/scottc943/penguinguide/compare/v0.1.2...v0.1.3) (2026-07-22)
 
 
