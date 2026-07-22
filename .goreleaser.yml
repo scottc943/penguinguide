@@ -51,8 +51,6 @@ nfpms:
 
 aurs:
   - name: penguinguide-bin
-    ids:
-      - penguinguide
     homepage: "https://github.com/scottc943/penguinguide"
     description: "Helpful Linux guide and diagnostics tool for new users"
     maintainers:
