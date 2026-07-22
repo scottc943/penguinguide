@@ -146,4 +146,3 @@ jobs:
         run: |
           set +x
           rm -f "${RUNNER_TEMP}/penguinguide-aur-key"
-
