@@ -63,9 +63,11 @@ jobs:
       - name: Run GoReleaser
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # SSH private key for aur.archlinux.org, matches .goreleaser.yml private_key: "{{ .Env.AUR_KEY }}"
           AUR_KEY: ${{ secrets.AUR_KEY }}
           # Convert the boolean input into "true" or "false" for GoReleaser templates
           PUBLISH_AUR: ${{ inputs.publish_aur && 'true' || 'false' }}
-        run: goreleaser release --clean
+        run: |
+          goreleaser --version
+          goreleaser check --config .goreleaser.yml
+          goreleaser release --clean --config .goreleaser.yml
 
