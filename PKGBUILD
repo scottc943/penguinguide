@@ -1,7 +1,7 @@
 # Maintainer: Scott Coffman <scott at allthingslinux dot org>
 
 pkgname=penguinguide-bin
-pkgver=0.1.0
+pkgver=0.1.1
 pkgrel=1
 pkgdesc="Friendly Linux helper tool for new users"
 arch=('x86_64' 'aarch64')

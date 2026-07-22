@@ -1,7 +1,6 @@
 name: Release
 
 on:
-  # Manual trigger so you can type version and choose whether to publish AUR
   workflow_dispatch:
     inputs:
       version:
@@ -50,7 +49,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: "1.25"
 
       - name: Install GoReleaser
         uses: goreleaser/goreleaser-action@v6
@@ -64,8 +63,9 @@ jobs:
       - name: Run GoReleaser
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # SSH private key for aur.archlinux.org, matches .goreleaser.yml private_key: "{{ .Env.AUR_KEY }}"
           AUR_KEY: ${{ secrets.AUR_KEY }}
-          # Map boolean input to literal "true" or "false" string
+          # Convert the boolean input into "true" or "false" for GoReleaser templates
           PUBLISH_AUR: ${{ inputs.publish_aur && 'true' || 'false' }}
         run: goreleaser release --clean
 

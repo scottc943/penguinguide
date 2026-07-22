@@ -41,6 +41,7 @@ nfpms:
     maintainer: "Scott Coffman <scott@allthingslinux.org>"
     description: "Helpful Linux guide and diagnostics tool for new users"
     license: MIT
+    homepage: "https://github.com/scottc943/penguinguide"
     bindir: /usr/bin
     contents:
       - src: "man/penguinguide.1"
@@ -51,13 +52,17 @@ nfpms:
 aurs:
   - name: penguinguide-bin
     ids:
-      - penguinguide-archive
+      - penguinguide
     homepage: "https://github.com/scottc943/penguinguide"
     description: "Helpful Linux guide and diagnostics tool for new users"
     maintainers:
       - "Scott Coffman <scott@allthingslinux.org>"
     license: MIT
     git_url: "ssh://aur@aur.archlinux.org/penguinguide-bin.git"
+    private_key: "{{ .Env.AUR_KEY }}"
+    commit_author:
+      name: "Scott Coffman"
+      email: "scott@allthingslinux.org"
     provides:
       - penguinguide
     conflicts:
@@ -67,3 +72,4 @@ aurs:
 
 changelog:
   use: github
+
