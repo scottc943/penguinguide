@@ -1,35 +1,79 @@
+name: Release
+
+"on":
+  push:
+    branches:
+      - main
+
+  workflow_dispatch: {}
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
 jobs:
-  release:
-    name: Build and publish release
+  release_please:
+    name: Prepare semantic release
+
+    if: github.ref == 'refs/heads/main'
+
     runs-on: ubuntu-24.04
-    environment: aur-production
+
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+
+    steps:
+      - name: Create or update release
+        id: release
+        uses: googleapis/release-please-action@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish:
+    name: Build and publish release
+
+    needs:
+      - release_please
+
+    if: needs.release_please.outputs.release_created == 'true'
+
+    runs-on: ubuntu-24.04
+
+    environment:
+      name: aur-production
 
     permissions:
       contents: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
+      - name: Checkout released tag
+        uses: actions/checkout@v7
         with:
+          ref: ${{ needs.release_please.outputs.tag_name }}
           fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version: "1.26.4"
           check-latest: false
           cache: true
           cache-dependency-path: go.sum
 
-      - name: Install GoReleaser
-        uses: goreleaser/goreleaser-action@v7
-        with:
-          distribution: goreleaser
-          version: "~> v2"
-          install-only: true
+      - name: Verify Go version
+        run: go version
 
       - name: Download and verify modules
+        shell: bash
         run: |
           set -euo pipefail
           go mod download
@@ -41,6 +85,13 @@ jobs:
       - name: Generate man pages
         run: go run . man --dir=man
 
+      - name: Install GoReleaser
+        uses: goreleaser/goreleaser-action@v7
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          install-only: true
+
       - name: Prepare AUR deployment key
         shell: bash
         env:
@@ -49,17 +100,28 @@ jobs:
           set -euo pipefail
           set +x
 
+          if [[ -z "${AUR_KEY_B64:-}" ]]; then
+            echo "::error::AUR_KEY_B64 is not configured in the aur-production environment."
+            exit 1
+          fi
+
           KEY_PATH="${RUNNER_TEMP}/penguinguide-aur-key"
 
           umask 077
+
           printf '%s' "${AUR_KEY_B64}" |
             base64 --decode > "${KEY_PATH}"
 
           unset AUR_KEY_B64
+
           chmod 600 "${KEY_PATH}"
 
-          if ! grep -q '^-----BEGIN OPENSSH PRIVATE KEY-----$' "${KEY_PATH}"; then
-            echo "Invalid AUR SSH key format."
+          if ! ssh-keygen \
+            -y \
+            -P "" \
+            -f "${KEY_PATH}" \
+            >/dev/null 2>&1; then
+            echo "::error::The decoded AUR key is invalid or password-protected."
             rm -f "${KEY_PATH}"
             exit 1
           fi
@@ -74,10 +136,14 @@ jobs:
         run: |
           set -euo pipefail
           set +x
-          goreleaser release --clean --config .goreleaser.yml
+
+          goreleaser release \
+            --clean \
+            --config .goreleaser.yml
 
       - name: Remove temporary AUR key
         if: always()
         shell: bash
         run: |
+          set +x
           rm -f "${RUNNER_TEMP}/penguinguide-aur-key"
