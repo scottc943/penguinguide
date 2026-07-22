@@ -1,52 +1,83 @@
-name: Release
-
-on:
-  push:
-    tags:
-      - "v*"
-
-permissions:
-  contents: write
-
 jobs:
   release:
     name: Build and publish release
     runs-on: ubuntu-24.04
+    environment: aur-production
+
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Go
-        uses: actions/setup-go@v7
+        uses: actions/setup-go@v6
         with:
           go-version: "1.26.4"
           check-latest: false
           cache: true
           cache-dependency-path: go.sum
 
-      - name: Verify Go version
-        run: go version
-
-      - name: Download Go modules
-        run: go mod download
-
-      - name: Verify Go modules
-        run: go mod verify
-
-      - name: Generate man pages
-        run: go run . man --dir=man
-
-      - name: Run GoReleaser
+      - name: Install GoReleaser
         uses: goreleaser/goreleaser-action@v7
         with:
           distribution: goreleaser
           version: "~> v2"
-          args: release --clean --config .goreleaser.yml
+          install-only: true
+
+      - name: Download and verify modules
+        run: |
+          set -euo pipefail
+          go mod download
+          go mod verify
+
+      - name: Run tests
+        run: go test ./...
+
+      - name: Generate man pages
+        run: go run . man --dir=man
+
+      - name: Prepare AUR deployment key
+        shell: bash
+        env:
+          AUR_KEY_B64: ${{ secrets.AUR_KEY_B64 }}
+        run: |
+          set -euo pipefail
+          set +x
+
+          KEY_PATH="${RUNNER_TEMP}/penguinguide-aur-key"
+
+          umask 077
+          printf '%s' "${AUR_KEY_B64}" |
+            base64 --decode > "${KEY_PATH}"
+
+          unset AUR_KEY_B64
+          chmod 600 "${KEY_PATH}"
+
+          if ! grep -q '^-----BEGIN OPENSSH PRIVATE KEY-----$' "${KEY_PATH}"; then
+            echo "Invalid AUR SSH key format."
+            rm -f "${KEY_PATH}"
+            exit 1
+          fi
+
+          printf 'AUR_KEY_PATH=%s\n' "${KEY_PATH}" >> "${GITHUB_ENV}"
+
+      - name: Run GoReleaser
+        shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          AUR_KEY: ${{ secrets.AUR_KEY }}
           PUBLISH_AUR: "true"
+        run: |
+          set -euo pipefail
+          set +x
+          goreleaser release --clean --config .goreleaser.yml
+
+      - name: Remove temporary AUR key
+        if: always()
+        shell: bash
+        run: |
+          rm -f "${RUNNER_TEMP}/penguinguide-aur-key"

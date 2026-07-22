@@ -2,9 +2,15 @@ version: 2
 
 project_name: penguinguide
 
+release:
+  # Release Please creates the GitHub release and release notes.
+  # GoReleaser keeps them and uploads the generated files.
+  mode: keep-existing
+
 builds:
   - id: penguinguide
-    main: ./main.go
+
+    main: .
     binary: penguinguide
 
     env:
@@ -49,6 +55,7 @@ checksum:
 
 nfpms:
   - id: penguinguide-packages
+
     package_name: penguinguide
 
     ids:
@@ -62,6 +69,7 @@ nfpms:
     description: "Helpful Linux guide and diagnostics tool for new users"
     license: MIT
     homepage: "https://github.com/scottc943/penguinguide"
+
     bindir: /usr/bin
 
     contents:
@@ -76,6 +84,7 @@ nfpms:
 
 aurs:
   - name: penguinguide-bin
+
     homepage: "https://github.com/scottc943/penguinguide"
     description: "Helpful Linux guide and diagnostics tool for new users"
 
@@ -85,7 +94,9 @@ aurs:
     license: MIT
 
     git_url: "ssh://aur@aur.archlinux.org/penguinguide-bin.git"
-    private_key: "{{ .Env.AUR_KEY }}"
+
+    # Temporary key file created from the AUR_KEY_B64 secret.
+    private_key: "{{ .Env.AUR_KEY_PATH }}"
 
     commit_author:
       name: "Scott Coffman"
@@ -100,6 +111,7 @@ aurs:
     depends:
       - glibc
 
+    # Disable all AUR work unless publishing is explicitly enabled.
     disable: '{{ ne .Env.PUBLISH_AUR "true" }}'
 
     commit_msg_template: "Update to {{ .Tag }}"
