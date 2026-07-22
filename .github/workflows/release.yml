@@ -95,48 +95,21 @@ jobs:
       - name: Prepare AUR deployment key
         shell: bash
         env:
-          AUR_KEY_B64: ${{ secrets.AUR_KEY_B64 }}
+          AUR_PRIVATE_KEY: ${{ secrets.AUR_PRIVATE_KEY }}
         run: |
           set -euo pipefail
           set +x
 
-          if [[ -z "${AUR_KEY_B64:-}" ]]; then
-            echo "::error::AUR_KEY_B64 is not configured in the aur-production environment."
+          if [[ -z "${AUR_PRIVATE_KEY:-}" ]]; then
+            echo "::error::AUR_PRIVATE_KEY is not configured in the aur-production environment."
             exit 1
           fi
 
           KEY_PATH="${RUNNER_TEMP}/penguinguide-aur-key"
 
-          NORMALIZED_KEY="$(
-            printf '%s' "${AUR_KEY_B64}" |
-              tr -d '[:space:]'
-          )"
-
-          unset AUR_KEY_B64
-
-          if [[ ! "${NORMALIZED_KEY}" =~ ^[A-Za-z0-9+/]+={0,2}$ ]]; then
-            echo "::error::AUR_KEY_B64 contains characters that are not valid Base64."
-            unset NORMALIZED_KEY
-            exit 1
-          fi
-
-          if (( ${#NORMALIZED_KEY} % 4 != 0 )); then
-            echo "::error::AUR_KEY_B64 has an invalid Base64 length."
-            unset NORMALIZED_KEY
-            exit 1
-          fi
-
           umask 077
-
-          if ! printf '%s' "${NORMALIZED_KEY}" |
-            base64 --decode > "${KEY_PATH}"; then
-            echo "::error::AUR_KEY_B64 could not be decoded."
-            unset NORMALIZED_KEY
-            rm -f "${KEY_PATH}"
-            exit 1
-          fi
-
-          unset NORMALIZED_KEY
+          printf '%s\n' "${AUR_PRIVATE_KEY}" > "${KEY_PATH}"
+          unset AUR_PRIVATE_KEY
 
           chmod 600 "${KEY_PATH}"
 
@@ -145,7 +118,7 @@ jobs:
             -P "" \
             -f "${KEY_PATH}" \
             >/dev/null 2>&1; then
-            echo "::error::The decoded AUR key is invalid or password-protected."
+            echo "::error::The AUR private key is invalid or password-protected."
             rm -f "${KEY_PATH}"
             exit 1
           fi
@@ -153,7 +126,7 @@ jobs:
           printf 'AUR_KEY_PATH=%s\n' "${KEY_PATH}" >> "${GITHUB_ENV}"
 
           echo "AUR deployment key validated successfully."
-
+          
       - name: Run GoReleaser
         shell: bash
         env:
